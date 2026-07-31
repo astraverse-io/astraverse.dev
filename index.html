@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astraverse — operator tools for the people who get paged</title>
+<meta name="description" content="Astraverse builds open-source tooling for engineers who operate production systems. Maker of KubeAstra, an AI agent that investigates broken Kubernetes clusters.">
+<link rel="canonical" href="https://astraverse.dev/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://astraverse.dev/">
+<meta property="og:site_name" content="Astraverse">
+<meta property="og:title" content="Astraverse — operator tools for the people who get paged">
+<meta property="og:description" content="Open-source tooling for engineers who operate production systems. Maker of KubeAstra.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Astraverse — operator tools for the people who get paged">
+<meta name="twitter:description" content="Open-source tooling for engineers who operate production systems. Maker of KubeAstra.">
+<meta name="theme-color" content="#F8F7F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131311" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10,3 L10.7,8.2 L15.4,5.9 L11.5,10 L15.4,14.1 L10.7,11.8 L10,17 L9.3,11.8 L4.6,14.1 L8.5,10 L4.6,5.9 L9.3,8.2 Z' fill='%230891B2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --paper:#F8F7F4; --paper-2:#F2F0EC; --paper-3:#EAE7E1;
+  --ink:#1A1A18; --ink-2:#3D3D39; --ink-3:#6B6B65; --ink-4:#93938C;
+  --rule:#E2DFD8; --rule-2:#D2CEC6;
+  --accent:#0E7490; --accent-2:#0891B2; --accent-bg:#ECFEFF; --accent-bd:#A5F3FC;
+  --indigo:#4F46E5; --indigo-bg:#EEF2FF; --indigo-bd:#C7D2FE;
+  --shadow:0 1px 2px rgba(26,26,24,.04),0 8px 24px -12px rgba(26,26,24,.14);
+  --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  --dot:#D0CCC4; --dot-op:.13;
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#131311; --paper-2:#1A1A17; --paper-3:#22221E;
+    --ink:#F4F2ED; --ink-2:#D6D3CB; --ink-3:#9C9990; --ink-4:#74716A;
+    --rule:#2C2C27; --rule-2:#3A3A34;
+    --accent:#22D3EE; --accent-2:#67E8F9; --accent-bg:#0B2E36; --accent-bd:#164E5B;
+    --indigo:#A5B4FC; --indigo-bg:#1E1B3A; --indigo-bd:#312E81;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+    --dot:#6B6B65; --dot-op:.16;
+  }
+}
+
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+body{
+  font-family:var(--sans);
+  background:var(--paper);
+  color:var(--ink-2);
+  line-height:1.65;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+.texture{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle at 1px 1px,var(--dot) 1px,transparent 0);
+  background-size:38px 38px;opacity:var(--dot-op)}
+
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1}
+
+a{color:inherit}
+
+.skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:var(--paper);
+  padding:.7rem 1.1rem;border-radius:8px;z-index:200;font-size:14px;font-weight:600}
+.skip:focus{left:1rem;top:1rem}
+
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+/* ── nav ─────────────────────────────────────────── */
+nav{position:sticky;top:0;z-index:100;height:60px;
+  background:color-mix(in srgb,var(--paper) 86%,transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--rule)}
+.nav-in{max-width:1080px;margin:0 auto;padding:0 1.5rem;height:100%;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0}
+.brand svg{width:23px;height:23px;flex-shrink:0}
+.brand b{font-size:15.5px;font-weight:600;color:var(--ink);letter-spacing:-.021em}
+.brand b span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:1.6rem;list-style:none}
+.nav-links a{color:var(--ink-3);text-decoration:none;font-size:13.5px;font-weight:500;transition:color .18s}
+.nav-links a:hover{color:var(--ink)}
+.nav-gh{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;
+  background:var(--ink);color:var(--paper)!important;border-radius:7px;
+  font-weight:600!important;font-size:12.5px!important;transition:opacity .18s}
+.nav-gh:hover{opacity:.84}
+@media (max-width:720px){.nav-links li.hide-sm{display:none}}
+
+/* ── hero ────────────────────────────────────────── */
+.hero{padding:6.5rem 0 5rem;text-align:center;position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;
+  border:1px solid var(--accent-bd);background:var(--accent-bg);border-radius:100px;
+  font-family:var(--mono);font-size:11px;font-weight:500;color:var(--accent);
+  letter-spacing:.02em;margin-bottom:2.25rem}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);
+  animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.85)}}
+
+.glyph{width:74px;height:74px;margin:0 auto 2rem;display:block}
+
+h1{font-size:clamp(2.1rem,5.6vw,3.5rem);line-height:1.1;font-weight:600;
+  letter-spacing:-.035em;color:var(--ink);margin-bottom:1.5rem}
+h1 em{font-style:normal;color:var(--accent)}
+@media (max-width:620px){
+  .hero{padding:4rem 0 3.5rem}
+  h1 br{display:none}
+  .glyph{width:62px;height:62px}
+}
+
+.lede{font-size:clamp(1rem,2.1vw,1.2rem);color:var(--ink-3);max-width:620px;
+  margin:0 auto 2.5rem;line-height:1.6}
+
+.actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:9px;
+  font-size:14px;font-weight:600;text-decoration:none;transition:transform .18s,opacity .18s,background .18s;
+  border:1px solid transparent}
+.btn:hover{transform:translateY(-1px)}
+.btn-1{background:var(--ink);color:var(--paper)}
+.btn-1:hover{opacity:.86}
+.btn-2{background:var(--paper);color:var(--ink);border-color:var(--rule-2)}
+.btn-2:hover{background:var(--paper-2)}
+
+/* ── section furniture ───────────────────────────── */
+section{position:relative;z-index:1}
+.band{padding:5rem 0;border-top:1px solid var(--rule)}
+.band-alt{background:var(--paper-2)}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-4);margin-bottom:.9rem}
+h2{font-size:clamp(1.5rem,3.2vw,2rem);line-height:1.2;font-weight:600;
+  letter-spacing:-.028em;color:var(--ink);margin-bottom:1rem}
+.sec-lede{color:var(--ink-3);max-width:600px;font-size:16.5px}
+.sec-head{margin-bottom:3rem}
+
+/* ── principles ──────────────────────────────────── */
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(255px,1fr));gap:1.75rem}
+.principle{padding-top:1.25rem;border-top:2px solid var(--ink)}
+.principle h3{font-size:16.5px;font-weight:600;color:var(--ink);margin-bottom:.6rem;letter-spacing:-.014em}
+.principle p{font-size:14.5px;color:var(--ink-3);line-height:1.65}
+
+/* ── product ─────────────────────────────────────── */
+.product{background:var(--paper);border:1px solid var(--rule);border-radius:16px;
+  padding:2.25rem;box-shadow:var(--shadow)}
+.product-top{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap}
+.product-top svg{width:38px;height:38px;flex-shrink:0}
+.product h3{font-size:1.4rem;font-weight:600;color:var(--ink);letter-spacing:-.024em;line-height:1.2}
+.product h3 span{color:var(--accent)}
+.tag{font-family:var(--mono);font-size:10.5px;font-weight:500;padding:3px 9px;border-radius:5px;
+  background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-bd);
+  white-space:nowrap;letter-spacing:.02em}
+.tag-i{background:var(--indigo-bg);color:var(--indigo);border-color:var(--indigo-bd)}
+.product > p{font-size:15.5px;color:var(--ink-2);margin-bottom:1.5rem;max-width:64ch}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:10px;
+  overflow:hidden;margin-bottom:1.75rem}
+.fact{background:var(--paper);padding:.95rem 1.1rem}
+.fact dt{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-4);margin-bottom:.3rem}
+.fact dd{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.links{display:flex;gap:1.35rem;flex-wrap:wrap;align-items:center}
+.link{font-size:14px;font-weight:600;color:var(--accent);text-decoration:none;
+  display:inline-flex;align-items:center;gap:5px;transition:gap .18s}
+.link:hover{gap:9px}
+.link svg{width:13px;height:13px}
+
+/* ── contact ─────────────────────────────────────── */
+.contacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:.5rem}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:1.35rem}
+.card h3{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:.35rem}
+.card p{font-size:13.5px;color:var(--ink-3);margin-bottom:.85rem;line-height:1.55}
+.card a{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--accent);
+  text-decoration:none;word-break:break-all}
+.card a:hover{text-decoration:underline}
+
+/* ── footer ──────────────────────────────────────── */
+footer{border-top:1px solid var(--rule);padding:2.75rem 0;margin-top:0;
+  position:relative;z-index:1;background:var(--paper)}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.foot-left{display:flex;align-items:center;gap:10px}
+.foot-left svg{width:20px;height:20px}
+.foot-legal{font-size:13px;color:var(--ink-4);line-height:1.5}
+.foot-legal strong{color:var(--ink-3);font-weight:600}
+.foot-links{display:flex;gap:1.35rem;flex-wrap:wrap}
+.foot-links a{font-size:13px;color:var(--ink-3);text-decoration:none;font-weight:500}
+.foot-links a:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="texture" aria-hidden="true"></div>
+
+<nav>
+  <div class="nav-in">
+    <a href="/" class="brand" aria-label="Astraverse home">
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <polygon points="10,0.5 18.7,5.25 18.7,14.75 10,19.5 1.3,14.75 1.3,5.25" fill="none" stroke="currentColor" stroke-width=".9" opacity=".28" style="color:var(--accent)"/>
+        <path d="M10,3 L10.7,8.2 L15.4,5.9 L11.5,10 L15.4,14.1 L10.7,11.8 L10,17 L9.3,11.8 L4.6,14.1 L8.5,10 L4.6,5.9 L9.3,8.2 Z" fill="var(--accent)"/>
+      </svg>
+      <b>Astra<span>verse</span></b>
+    </a>
+    <ul class="nav-links">
+      <li class="hide-sm"><a href="#work">What we build</a></li>
+      <li class="hide-sm"><a href="#products">Products</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="https://github.com/astraverse-io" class="nav-gh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot" aria-hidden="true"></span> Independent software studio</span>
+
+    <svg class="glyph" viewBox="0 0 20 20" aria-hidden="true">
+      <polygon points="10,0.5 18.7,5.25 18.7,14.75 10,19.5 1.3,14.75 1.3,5.25" fill="none" stroke="var(--accent)" stroke-width=".4" opacity=".35"/>
+      <line x1="10" y1="10" x2="10" y2="0.5" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <line x1="10" y1="10" x2="18.7" y2="5.25" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <line x1="10" y1="10" x2="18.7" y2="14.75" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <line x1="10" y1="10" x2="10" y2="19.5" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <line x1="10" y1="10" x2="1.3" y2="14.75" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <line x1="10" y1="10" x2="1.3" y2="5.25" stroke="var(--accent)" stroke-width=".25" opacity=".16"/>
+      <circle cx="10" cy="0.5" r=".62" fill="var(--accent)"/>
+      <circle cx="18.7" cy="5.25" r=".62" fill="var(--accent)"/>
+      <circle cx="18.7" cy="14.75" r=".62" fill="var(--accent)"/>
+      <circle cx="10" cy="19.5" r=".62" fill="var(--accent)"/>
+      <circle cx="1.3" cy="14.75" r=".62" fill="var(--accent)"/>
+      <circle cx="1.3" cy="5.25" r=".62" fill="var(--accent)"/>
+      <path d="M10,3 L10.7,8.2 L15.4,5.9 L11.5,10 L15.4,14.1 L10.7,11.8 L10,17 L9.3,11.8 L4.6,14.1 L8.5,10 L4.6,5.9 L9.3,8.2 Z" fill="var(--accent)"/>
+      <circle cx="10" cy="10" r=".9" fill="var(--paper)"/><circle cx="10" cy="10" r=".45" fill="var(--accent)"/>
+    </svg>
+
+    <h1>Software for the people <br>who <em>get paged</em>.</h1>
+    <p class="lede">Astraverse builds operator tooling — software for engineers who are responsible for systems that are already running, and already broken. We take the tedious half of an incident so you can do the thinking half.</p>
+
+    <div class="actions">
+      <a href="#products" class="btn btn-1">What we make</a>
+      <a href="https://github.com/astraverse-io" class="btn btn-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        Read the source</a>
+    </div>
+  </div>
+</section>
+
+<section class="band band-alt" id="work">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">What we build</p>
+      <h2>Three commitments, and we hold to all of them.</h2>
+      <p class="sec-lede">Operator tools ask for a lot of trust — cluster credentials, production access, the authority to change things. These are the rules we work under so that trust is reasonable rather than requested.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="principle">
+        <h3>Your infrastructure, your credentials</h3>
+        <p>Our software runs where you run it, using the access you already have. Nothing phones home. No cluster data crosses a boundary you did not choose — and when a third-party model is involved, you pick which one, or run it locally and pick none.</p>
+      </div>
+      <div class="principle">
+        <h3>Open source, not open-core</h3>
+        <p>Everything we make is Apache 2.0 and developed in public. Not a trial, not a crippled edition with the useful parts behind a sales call. You can read every command before it touches your cluster, because you can read all of it.</p>
+      </div>
+      <div class="principle">
+        <h3>Show the work</h3>
+        <p>An answer you cannot check is worse than no answer, because it is confident. Every conclusion our tools reach carries the evidence that produced it — the commands run, the output seen, the reasoning between them — laid out so you can disagree.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="products">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Products</p>
+      <h2>What we make</h2>
+    </div>
+
+    <article class="product">
+      <div class="product-top">
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <polygon points="10,0.5 18.7,5.25 18.7,14.75 10,19.5 1.3,14.75 1.3,5.25" fill="none" stroke="var(--accent)" stroke-width=".7" opacity=".4"/>
+          <path d="M10,3 L10.7,8.2 L15.4,5.9 L11.5,10 L15.4,14.1 L10.7,11.8 L10,17 L9.3,11.8 L4.6,14.1 L8.5,10 L4.6,5.9 L9.3,8.2 Z" fill="var(--accent)"/>
+        </svg>
+        <div style="flex:1;min-width:200px">
+          <h3>Kube<span>Astra</span></h3>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.55rem">
+            <span class="tag">Apache 2.0</span>
+            <span class="tag tag-i">Kubernetes</span>
+            <span class="tag tag-i">MCP</span>
+          </div>
+        </div>
+      </div>
+
+      <p>An AI agent that investigates broken Kubernetes clusters. Ask it why a pod is crashlooping and it works the problem the way an engineer would — reading pods, events, logs and topology, following what it finds, and reporting a root cause with the evidence attached. It proposes fixes; you approve them. Write operations are gated behind an explicit confirmation, every time.</p>
+
+      <dl class="facts">
+        <div class="fact"><dt>Tools</dt><dd>51 built-in</dd></div>
+        <div class="fact"><dt>Models</dt><dd>Claude · Gemini · GPT · Ollama</dd></div>
+        <div class="fact"><dt>Runs as</dt><dd>Desktop app · Helm · MCP</dd></div>
+        <div class="fact"><dt>License</dt><dd>Apache 2.0</dd></div>
+      </dl>
+
+      <div class="links">
+        <a class="link" href="https://kubeastra.io">kubeastra.io
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        <a class="link" href="https://github.com/astraverse-io/KubeAstra">Source on GitHub
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="band band-alt" id="contact">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Contact</p>
+      <h2>Reach a person</h2>
+      <p class="sec-lede">Mail here is read by a human, not a queue. If you are reporting something sensitive, use the address that matches it — the wrong inbox is slower, not just untidy.</p>
+    </div>
+
+    <div class="contacts">
+      <div class="card">
+        <h3>General</h3>
+        <p>Questions, partnerships, press, or anything that does not fit elsewhere.</p>
+        <a href="mailto:hello@astraverse.dev">hello@astraverse.dev</a>
+      </div>
+      <div class="card">
+        <h3>Security</h3>
+        <p>Vulnerability reports. Please do not open a public issue — our policy and disclosure timeline are published.</p>
+        <a href="mailto:security@astraverse.dev">security@astraverse.dev</a>
+      </div>
+      <div class="card">
+        <h3>Legal</h3>
+        <p>Trademark questions, DMCA notices, and anything a lawyer wrote.</p>
+        <a href="mailto:legal@astraverse.dev">legal@astraverse.dev</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="foot-left">
+      <svg viewBox="0 0 20 20" aria-hidden="true">
+        <path d="M10,3 L10.7,8.2 L15.4,5.9 L11.5,10 L15.4,14.1 L10.7,11.8 L10,17 L9.3,11.8 L4.6,14.1 L8.5,10 L4.6,5.9 L9.3,8.2 Z" fill="var(--ink-4)"/>
+      </svg>
+      <p class="foot-legal"><strong>Astraverse</strong> &middot; Massachusetts, USA<br>&copy; 2026 &middot; Software released under Apache 2.0</p>
+    </div>
+    <div class="foot-links">
+      <a href="https://kubeastra.io">KubeAstra</a>
+      <a href="https://github.com/astraverse-io">GitHub</a>
+      <a href="https://github.com/astraverse-io/KubeAstra/blob/main/SECURITY.md">Security</a>
+      <a href="mailto:hello@astraverse.dev">Email</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
