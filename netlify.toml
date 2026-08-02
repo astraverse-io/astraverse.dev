@@ -1,0 +1,44 @@
+# Netlify configuration for astraverse.dev
+#
+# We moved here from GitHub Pages after its Let's Encrypt provisioning sat at
+# `authorization_pending` for over a day with correct DNS — four A records, no
+# CAA, and the ACME challenge path served from GitHub's own addresses — across
+# two clean remove-and-re-add cycles and a support ticket that was closed
+# without action. `.dev` is HSTS-preloaded, so a missing certificate is not a
+# cosmetic problem: browsers refuse the plain-HTTP fallback and the site is
+# simply unreachable.
+#
+# DNS deliberately stays at Namecheap rather than moving to a provider that
+# requires nameserver delegation. The apex points here; the MX records keep
+# pointing at Private Email and are never touched. Mail is the part that
+# actually gates Apple enrolment, so it does not get put at risk to fix a
+# website.
+
+[build]
+  # No build step: one hand-written index.html, published from the repo root.
+  # Stated explicitly so Netlify never tries to infer a framework and fail.
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # A year, with preload — safe to commit to on a TLD that is already
+    # HSTS-preloaded, since plain HTTP was never an option here anyway.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # The page carries no JavaScript at all, so the strictest useful policy
+    # costs nothing. Fonts come from Google Fonts; style-src needs 'unsafe-inline'
+    # only because the CSS is in a <style> block rather than a file.
+    Content-Security-Policy = "default-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+    # Nothing on this page needs any of it.
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+# Netlify serves the apex and www; make www canonical to the apex so the site
+# has one address rather than two that both work.
+[[redirects]]
+  from = "https://www.astraverse.dev/*"
+  to = "https://astraverse.dev/:splat"
+  status = 301
+  force = true
